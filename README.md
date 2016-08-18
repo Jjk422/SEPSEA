@@ -1,4 +1,4 @@
-# Self-Advancing-and-Propagating-System-Exploit-Algorithm (SAPSEA)
+# Self Advancing and Propagating System Exploit Algorithm (SAPSEA)
 ## Summary
 Self propagating algorithm that will create actively monitor, fingerprint, servey and create exploit attacks to maximise chance of exploit success.
 
