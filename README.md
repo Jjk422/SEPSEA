@@ -17,47 +17,44 @@ Wireshark may be used for connected network analysis of the system and its conne
 ## Overview plan
 ```
 – Get command line arguments
-	– Main arguments include
+    – Main arguments include
 
-	– Options include
-		– Exploit mode (Visability, Speed, Chance of success)
-		– Number of exploits to try (Arbetrary value/ 1+, set to full list length by default)
-		– Desired outcome (shell/remote execution)
-```
-```
+    – Options include
+        – Exploit mode (Visability, Speed, Chance of success)
+        – Number of exploits to try (Arbetrary value/ 1+, set to full list length by default)
+        – Desired outcome (shell/remote execution)
+
 – Fingerprinting
-	– Identify os
-		– Identify base type of kernel (windows/linux/linux)
-		– Identify os distro
-		– Identify os kernel version
-		– Identify os distro version
-	– Identify software
-		– Identify software name
-		– Identify software version
-	– Identify connected networks
-		– Identify any networks machine connects to via
-			– Viewing network connections via things like wireshark
-			– Spoofing addresses in network range to see if connection can be established
-```
-```
+    – Identify os
+        – Identify base type of kernel (windows/linux/linux)
+        – Identify os distro
+        – Identify os kernel version
+        – Identify os distro version
+    – Identify software
+        – Identify software name
+        – Identify software version
+    – Identify connected networks
+        – Identify any networks machine connects to via
+            – Viewing network connections via things like wireshark
+            – Spoofing addresses in network range to see if connection can be established
+
 – Categorise and compare usable exploits
-	– Find usable exploits
-		– Contains list of all usable exploits
-		– Categorises against software, kernel and distro.
-		– Categorises against selected outcome (shell/remote execution)
-	– Categorise exploits into three category lists (Visability, Speed, Chance of success)
-		– Category list selected via command line
-	– Create exploit order list
-		– Contains list of all exploits copied from selected category list
-		– Number selected from command line arguments
-```
-```
+    – Find usable exploits
+        – Contains list of all usable exploits
+        – Categorises against software, kernel and distro.
+        – Categorises against selected outcome (shell/remote execution)
+    – Categorise exploits into three category lists (Visability, Speed, Chance of success)
+        – Category list selected via command line
+    – Create exploit order list
+        – Contains list of all exploits copied from selected category list
+        – Number selected from command line arguments
+
 – Exploit software
-	– Run each exploit in the exploit list
-	– Check after each exploit whether the desired outcome is achieved (shell/remote execution)
+    – Run each exploit in the exploit list
+    – Check after each exploit whether the desired outcome is achieved (shell/remote execution)
 
 – Return results
-	– Return summary of exploits tested
-	– Return outcome (desired outcome obtained, desired outcome not obtained)
-	– Return summary of attacked system
+    – Return summary of exploits tested
+    – Return outcome (desired outcome obtained, desired outcome not obtained)
+    – Return summary of attacked system
 ```
