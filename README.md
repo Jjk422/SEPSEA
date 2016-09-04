@@ -49,7 +49,7 @@ Wireshark may be used for connected network analysis of the system and its conne
         – Contains list of all exploits copied from selected category list
         – Number selected from command line arguments
 
-– Exploit software
+– Exploit software 
     – Run each exploit in the exploit list
     – Check after each exploit whether the desired outcome is achieved (shell/remote execution)
 
