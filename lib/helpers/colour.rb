@@ -5,7 +5,7 @@ class Colour
   end
 
   def colour(text,colour_code)
-    if @disable_colours == false
+    if !@disable_colours
       "\e[#{colour_code}m#{text}\e[0m"
     else
       "#{text}"
@@ -60,8 +60,10 @@ class Colour
   end
 
   ##### Disable colours #####
-  def disable_colours
-    @disable_colours = true
+  def disable_colours(disable_colours)
+    unless disable_colours == 'false'
+      @disable_colours = true
+    end
   end
 
   ##### Text formats #####
@@ -92,23 +94,29 @@ class Colour
   end
 
   ##### Default self classes #####
-  def self.err
+
+  def err(text)
     puts text_error(text)
   end
 
-  def self.notify
+  def notify(text)
     puts text_notify(text)
   end
 
-  def self.help
+  def help(text)
     puts text_help(text)
   end
 
-  def self.urgent
+  def help_bold(text)
+    puts bold_help(text)
+  end
+
+  def urgent(text)
     puts text_urgent(text)
   end
 
-  def self.caution
+  def caution(text)
     puts text_caution(text)
   end
+
 end
