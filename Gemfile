@@ -1,0 +1,5 @@
+source 'https://rubygems.org'
+gem 'nokogiri', '~>1.3'
+gem 'rprogram', '~>0.3'
+gem 'ruby-nmap'
+# gem 'rspec', :require => 'spec'
