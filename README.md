@@ -1,4 +1,9 @@
 # Self Advancing and Propagating System Exploit Algorithm (SAPSEA)
+## Software requirements
+[Ruby](https://www.ruby-lang.org/en/)  
+[Nmap](https://nmap.org/)  
+
+
 ## Summary
 Self propagating algorithm that will create actively monitor, fingerprint, servey and create exploit attacks to maximise chance of exploit success.
 
