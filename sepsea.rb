@@ -1,7 +1,6 @@
 # – File includes
 require 'getoptlong'
 require 'nmap'
-# require 'fileutils'
 
 require_relative "lib/helpers/constants"
 require_relative "lib/helpers/colour"
@@ -195,7 +194,8 @@ case ARGV[0]
     errors = argument_checker(options, 'run')
     if errors.empty?
       ##### Fingerprinting #####
-      project_number = FileCreator.get_project_number("#{DIR_ROOT}/projects")
+      FileCreator.create_main_project_directory(DIR_PROJECTS) unless Dir.exist? DIR_PROJECTS
+      project_number = FileCreator.get_project_number(DIR_PROJECTS)
       @colour.notify "Project number has been selected, number set to '#{project_number}'"
       project_directory_path = "#{DIR_ROOT}/projects/project_##{project_number}"
       @colour.notify "Project directory created in projects directory, project directory path is '#{project_directory_path}'"

@@ -1,6 +1,10 @@
 require 'fileutils'
 
 class FileCreator
+  def self.create_main_project_directory(projects_dir_main)
+    Dir.mkdir projects_dir_main
+  end
+
   def self.get_project_number(project_directory)
     project_number = 0
     Dir.entries(project_directory).select{ |project|
@@ -21,7 +25,7 @@ class FileCreator
     #   / project_files
     #   /
     #
-    # if
+
     Dir.mkdir directory_path_root
     Dir.mkdir "#{directory_path_root}/scan_files"
     Dir.mkdir "#{directory_path_root}/project_files"
