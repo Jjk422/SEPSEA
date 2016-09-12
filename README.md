@@ -1,4 +1,4 @@
-# Self Advancing and Propagating System Exploit Algorithm (SAPSEA)
+# Self Evaluating and Propagating System Exploit Algorithm (SEPSEA)
 ## Software requirements
 [Ruby](https://www.ruby-lang.org/en/)  
 [Nmap](https://nmap.org/)  
