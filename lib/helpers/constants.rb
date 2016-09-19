@@ -10,3 +10,6 @@ DIR_CLASSES = "#{DIR_ROOT}/lib/classes"
 
 ## Projects directory
 DIR_PROJECTS = "#{DIR_ROOT}/projects"
+
+## Exploits directory
+DIR_EXPLOITS = "#{DIR_ROOT}/exploits"

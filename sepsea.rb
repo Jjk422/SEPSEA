@@ -6,6 +6,7 @@ require_relative "lib/helpers/constants"
 require_relative "lib/helpers/colour"
 require_relative "lib/classes/file_creator"
 require_relative "lib/classes/nmap_runner"
+require_relative "lib/classes/exploit_searcher"
 
 @colour = Colour.new
 options = {}
@@ -100,6 +101,10 @@ def argument_checker(options, command)
         err << "The option [--run-as-root] is required for the [--os-fingerprint] option to run"
       end
 
+      if (options.has_key? :exploit_database) && !(['exploit-database','SEPSEA-database'].include? options[:exploit_database])
+        err << "The option [--exploit-database] only takes the values ['exploit-database' or 'SEPSEA-database']"
+      end
+
       if err.empty?
         return err
       else
@@ -112,6 +117,126 @@ def argument_checker(options, command)
   end
 end
 
+def create_dir_structure(colour, projects_dir)
+  FileCreator.create_main_project_directory(projects_dir) unless Dir.exist? projects_dir
+  project_number = FileCreator.get_project_number(projects_dir)
+  colour.notify "Project number has been selected, number set to '#{project_number}'"
+  project_directory_path = "#{DIR_ROOT}/projects/project_##{project_number}"
+  colour.notify "Project directory created in projects directory, project directory path is '#{project_directory_path}'"
+  FileCreator.create_project_dir_structure(project_directory_path)
+  return project_directory_path, project_number
+end
+
+def get_exploit_index_path(exploit_database)
+  case exploit_database
+    when 'exploit-database'
+      return "#{DIR_ROOT}/exploits/database_indexes/exploit-database_index.csv"
+    when 'SEPSEA-database'
+      return "#{DIR_ROOT}/exploits/database_indexes/SEPSEA-database_index.csv"
+    else
+      return "#{DIR_ROOT}/exploits/database_indexes/exploit-database_index.csv"
+  end
+end
+
+def run_nmap_scan(project_dir_path, options)
+  if options.has_key? :run_as_root
+    NmapRunner.nmap_run(project_dir_path, options)
+  else
+    NmapRunner.nmap_run(project_dir_path, options)
+  end
+end
+
+def parse_nmap_xml(filename)
+  machines = {}
+  Nmap::XML.new(filename) do |xml|
+    xml.each_host do |host|
+      ip_address = host.ip.to_sym
+      machines[ip_address] = {}
+
+      host.each_port do |port|
+        port_number = port.number
+        port_protocol = port.protocol
+        port_state = port.state
+        port_service = port.service
+
+        machines[ip_address][port_number] = {:protocol => port_protocol.to_s, :state => port_state.to_s, :service => port_service.to_s}
+
+      end
+    end
+  end
+  machines
+end
+
+def use_exploits(exploits, output_dir)
+  puts "exploits: #{exploits}"
+  if exploits.is_a? Array
+    exploits.each { | exploit |
+      exploit_path = exploit[:file]
+      extension, exploit_exe_path = compile_exploit(exploit_path, output_dir)
+
+      exploit_successful = run_exploit(extension, exploit_exe_path)
+      if exploit_successful
+        @colour.err "Exploit [#{exploit[:description]}] executed successfully"
+      else
+        @colour.err "Exploit [#{exploit[:description]}] failed to execute"
+      end
+    }
+  else
+
+    # exploit_exe_path = compile_exploit(exploit_path)
+    # run_exploit(exploits)
+  end
+end
+
+def compile_exploit(exploit_path, output_dir)
+  file_path = exploit_path.split('.').first
+  file_name = exploit_path.split('/').last
+  extension = '.' + exploit_path.split('.').last
+  full_exploit_path = "#{DIR_EXPLOITS}/exploit-database/#{exploit_path}"
+  output_path = "#{output_dir}/#{file_name}.exploit"
+
+  # puts "output_path: #{output_path}"
+
+  case extension
+    when '.py'
+      # Python compile
+      # output_path = "#{output_dir}/#{file_name}.exploit"
+      FileUtils.cp(full_exploit_path, output_path)
+    when '.rb'
+      # Ruby compile
+      # output_path = "#{output_dir}/#{file_name}.exploit"
+      FileUtils.cp(full_exploit_path, output_path)
+    when '.txt'
+      # Text compile
+      # output_path = "#{output_dir}/#{file_name}.exploit"
+      FileUtils.cp(full_exploit_path, output_path)
+    when '.c'
+      # C compile
+      # output_path = "#{output_dir}/#{file_name}.exploit"
+      system "gcc #{full_exploit_path} -o #{output_path}"
+  end
+  return extension, output_path
+
+  # output_path = exploit_path.split('.c').first
+  # system "gcc #{exploit_path} #{exploit_path}"
+end
+
+def run_exploit(extension, exploit_path)
+  outcome = nil
+
+  case extension
+    when '.py'
+      outcome = system "python #{exploit_path}"
+    when '.rb'
+      outcome = system "ruby #{exploit_path}"
+    when '.txt'
+      # Run Text exploit file
+    when '.c'
+      outcome = system "./#{exploit_path}"
+  end
+  return outcome
+end
+
 opts = GetoptLong.new(
     [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
     [ '--more', GetoptLong::REQUIRED_ARGUMENT],
@@ -119,6 +244,7 @@ opts = GetoptLong.new(
     [ '--exploit-mode', '-m', GetoptLong::REQUIRED_ARGUMENT],
     [ '--exploit-number', '-n', GetoptLong::REQUIRED_ARGUMENT],
     [ '--desired-outcome', '-o', GetoptLong::REQUIRED_ARGUMENT],
+    [ '--exploit-database', '-d', GetoptLong::REQUIRED_ARGUMENT],
     [ '--disable-colours', GetoptLong::OPTIONAL_ARGUMENT],
     [ '--syn-scan', GetoptLong::NO_ARGUMENT],
     [ '--service-scan', GetoptLong::NO_ARGUMENT ],
@@ -154,6 +280,10 @@ opts.each do |opt, arg|
 
     when '--desired-outcome', '-o'
       options[:desired_outcome] = arg
+      @colour.notify "#{opt} option set to #{arg}"
+
+    when '--exploit-database', '-d'
+      options[:exploit_database] = arg
       @colour.notify "#{opt} option set to #{arg}"
 
     ### Other options
@@ -193,27 +323,51 @@ case ARGV[0]
   when 'run', 'r'
     errors = argument_checker(options, 'run')
     if errors.empty?
-      ##### Fingerprinting #####
-      FileCreator.create_main_project_directory(DIR_PROJECTS) unless Dir.exist? DIR_PROJECTS
-      project_number = FileCreator.get_project_number(DIR_PROJECTS)
-      @colour.notify "Project number has been selected, number set to '#{project_number}'"
-      project_directory_path = "#{DIR_ROOT}/projects/project_##{project_number}"
-      @colour.notify "Project directory created in projects directory, project directory path is '#{project_directory_path}'"
-      FileCreator.create_project_dir_structure(project_directory_path)
+      ##### Directory Structure #####
+      project_directory_path, project_number = create_dir_structure(colour = @colour, projects_dir = DIR_PROJECTS)
 
-      if options.has_key? :run_as_root
-        NmapRunner.nmap_run(project_directory_path, options)
-      else
-        NmapRunner.nmap_run(project_directory_path, options)
-      end
+      ##### Fingerprinting #####
+      ##### Nmap Scan #####
+      run_nmap_scan(project_directory_path, options)
+
+      ##### Nmap Scan end #####
       ##### Fingerprinting end #####
 
-      ##### Categorise and compare usable exploits #####
+      ##### Parse nmap file #####
+      scan_data = parse_nmap_xml("#{project_directory_path}/scan_files/#{options[:ip_address]}.xml")
 
+      # ports_to_exploit = {}
+
+      ### Sort port data into open/closed
+      scan_data.each do | ip_address, ports |
+        ports.each do | port_number, port_info |
+          ports.delete(port_number) if port_info[:state].eql? "closed"
+        end
+        scan_data.delete(ip_address) if scan_data[ip_address].empty?
+      end
+
+      ##### Parse nmap file end #####
+
+      ##### Categorise and compare usable exploits #####
+      @exploit_searcher = ExploitSearcher.new
+
+      exploit_file = get_exploit_index_path(options[:exploit_database])
+
+      ip_to_exploits = {}
+      scan_data.each do | ip_address, ports |
+        @colour.notify "Selecting exploits for machine with ip address [#{ip_address}]: port numbers #{ports.keys}"
+        ip_to_exploits[ip_address] = @exploit_searcher.select_exploits_from_file(exploit_file, :port => ports.keys, :platform => ['windows','linux','windows'], :type => 'remote')
+        # ip_to_exploits[ip_address] = @exploit_searcher.select_exploits_from_file(exploit_file, :file => 'platforms/windows/remote/1.c')
+
+        # @colour.notify "All exploits selected for machine [#{ip_address}]: port numbers #{ports.keys}"
+        # @colour.notify "Using selected exploits on machine [#{ip_address}]"
+        # use_exploits(ip_to_exploits[ip_address], '/home/user/SEPSEA_test')
+      end
+
+      # @colour.notify "ip_to_exploits: #{ip_to_exploits}"
       ##### Categorise and compare usable exploits end #####
 
-
-    else
+      else
       errors.each { |error|
         @colour.err error
       }
